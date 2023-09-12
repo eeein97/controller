@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.green.mapper.BoardMapper">
+	<!-- <sql id="criteria">
+		<trim prefix="where">
+		<if test="typeArr != null">
+			<foreach collection="typeArr" item="type" separator="or">
+				<if test="type == 'T'.toString()">
+					title like '%'||#{keyword}||'%'
+				</if>
+				<if test="type == 'C'.toString()">
+					content like '%'||#{keyword}||'%'
+				</if>
+				<if test="type == 'W'.toString()">
+					writer like '%'||#{keyword}||'%'
+				</if>
+			</foreach>
+			</if>
+		</trim>
+	</sql> -->
+	<insert id="insert">
+		insert into tbl_board(bno, title, content, writer)
+		values(seq_board.nextval, #{title}, #{content}, #{writer})
+	</insert>
+	<insert id="insertSelectKey">
+		insert into tbl_board(bno, title, content, writer)
+		values(seq_board.nextval, #{title}, #{content}, #{writer})
+		<selectKey keyProperty="bno" order="AFTER" resultType="long">
+		select seq_board.currval from dual
+		</selectKey>
+	</insert>
+	<select id="read" resultType="org.green.domain.BoardVO">
+		<!-- id는 메소드랑 맞춤 -->
+		Select * from tbl_board where bno = #{bno}
+	</select>
+	<delete id="delete">
+		delete from tbl_board where bno = #{bno}
+	</delete>
+	<update id="update">
+		update tbl_board set title=#{title},
+		content=#{content}, writer=#{writer} where bno = #{bno}
+	</update>
+	<!-- 1페이지 1-10 / 2페이지 11-20 -->
+	<select id="getListWithPaging"
+	resultType="org.green.domain.BoardVO">
+	select * from
+	( select Tb.*, rownum rNum from
+	(select * from tbl_board
+	<trim prefix="where (" suffix=")" prefixOverrides="OR">
+		<if test="typeArr != null">
+			<foreach collection="typeArr" item="type">
+				<trim prefix="OR">
+					<if test="type =='T'.toString()">
+						title like '%'||#{keyword}||'%'
+					</if>
+					<choose>
+						<when test="type == 'C'.toString()">
+							content like '%'||#{keyword}||'%'
+						</when>
+						<when test="type == 'W'.toString()">
+							writer like '%'||#{keyword}||'%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</if>
+	</trim>
+	order by bno desc ) Tb
+	) where rNum between (#{pageNum}-1) * #{amount}+1 and #{pageNum} *
+	#{amount}
+</select>
+	<select id="getTotalCount" resultType="int">
+		select count(*) from tbl_board <trim prefix="where (" suffix=")" prefixOverrides="OR">
+		<if test="typeArr != null">
+			<foreach collection="typeArr" item="type">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'T'.toString()">
+							title like '%'||#{keyword}||'%'
+						</when>
+						<when test="type == 'C'.toString()">
+							content like '%'||#{keyword}||'%'
+						</when>
+						<when test="type == 'W'.toString()">
+							writer like '%'||#{keyword}||'%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</if>
+	</trim>
+	</select>
+
+	<select id="searchTest" resultType="org.green.domain.BoardVO">
+		select * from tbl_board
+		<!-- prefix앞에 쿼리추가 suffix 뒤에 쿼리 추가 -->
+		<trim prefix="where">
+			<foreach collection="map" index="key" item="val" separator="or">
+				<if test="key == 'T'.toString()">
+					title like '%'|| #{val} || '%'
+				</if>
+				<if test="key == 'C'.toString()">
+					content like '%'|| #{val} || '%'
+				</if>
+				<if test="key == 'W'.toString()">
+					writer like '%'|| #{val} || '%'
+				</if>
+			</foreach>
+		</trim>
+	</select>
+</mapper>

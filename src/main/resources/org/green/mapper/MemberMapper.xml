@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.green.mapper.MemberMapper">
+<!-- memberMap이라는 이름을 가지는 resultMap은 
+	MemberVO객체의 인스턴스 AutoVO객체의 인스턴스들을 구성할 수 있음
+	mybatis는 1:N관계의 결과를 처리할 수 있는 <resultMap>태그를 지원 -->
+	<resultMap type="org.green.domain.MemberVO" id="memberMap">
+			<id property="userid" column="userid" />
+			<result property="userid" column="userid" />
+			<result property="userpw" column="userpw" />
+			<result property="userName" column="userName" />
+			<result property="regDate" column="regDate" />
+			<result property="updateDate" column="updateDate" />
+			<collection property="authList" resultMap="authMap">
+			</collection>
+	</resultMap>
+	<resultMap type="org.green.domain.AuthVO" id="authMap">
+		<result property="userid" column="userid" />
+		<result property="auth" column="auth" />
+	</resultMap>
+	<select id="read" resultMap="memberMap">
+		select mem.userid, userpw, username, enabled, regdate, updatedate, auth from c_member mem left outer join tbl_member_auth auth on mem.userid = auth.userid where mem.userid = #{userid}
+	</select>
+	<insert id="insert">
+		insert into c_member(userid, userpw, username)
+		values(#{userid}, #{userpw}, #{userName})
+	</insert>
+</mapper>
